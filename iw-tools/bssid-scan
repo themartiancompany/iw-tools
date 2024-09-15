@@ -21,6 +21,11 @@ _global_variables() {
 }
 
 _requirements() {
+  local \
+    _os
+  _os="$( \
+    uname \
+      -o)"
   _check_cmd \
     'iw'
   if [[ "${_os}" == "Android" ]]; then
@@ -58,24 +63,33 @@ _iw_parse() {
   local \
     _iw_out="${1}" \
     _associated_only="${2}" \
-    _bsss \
-    _out
-  _bsss="$( \
+    _bsss=() \
+    _bsss_lines
+  _bsss_lines="$( \
     echo \
       "${_iw_out}" | \
       sed \
         -n \
-        "/^BSS: /p")"
-  _out="${_bsss}"
-  if [[ "${_associated_only}" == "true" ]]; then
-    _out="$( \
+        "/^BSS /p")"
+  if [[ "${_associated_only}" == "y" ]]; then
+    _bsss_lines="$( \
       echo \
-        "${_bsss}" | \
+        "${_bsss_lines}" | \
         grep \
           "associated")"
   fi
+  _bsss=(  $( \
+    echo \
+      "${_bsss_lines}" | \
+      awk \
+        '{print $2}' | \
+        awk \
+          -F \
+            "(" \
+          '{print $1}')
+  )
   echo \
-    "${_out}"
+    "${_bsss[*]}"
 }
 
 _iw_scan() {
@@ -97,7 +111,7 @@ _bssid_scan() {
     _device="${1}" \
     _associated_only="${2}" \
     _cmd=()
-  _bssid_get \
+  _bssids_get \
     "${_device}" \
     "${_associated_only}"
 }
@@ -195,12 +209,12 @@ _config_user_init \
 # shellcheck disable=SC2034
 while \
   getopts \
-    'd:a:cvh?' \
+    'd:acvh?' \
     arg; do
   case \
     "${arg}" in
-    d) override_target_device="wlan0" ;;
-    a) override_associated_only="true" ;;
+    d) override_target_device="${OPTARG}" ;;
+    a) override_associated_only="y" ;;
     c) override_color="y" ;;
     v) override_quiet="n" ;;
     h|?) _set_overrides && \
