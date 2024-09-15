@@ -21,7 +21,7 @@ install: install-scripts install-doc
 
 install-scripts:
 
-	install -vDm 755 "$(_PROJECT)/bssid-scan" "$(BIN_DIR)/bssid-scan"
+	install -vDm 755 "$(_PROJECT)/iw-bssid-scan" "$(BIN_DIR)/iw-bssid-scan"
 
 install-doc:
 
